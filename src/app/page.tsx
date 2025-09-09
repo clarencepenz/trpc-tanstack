@@ -1,100 +1,96 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { trpc } from "@/utils/trpc.utils";
-import Image from "next/image";
-import { Todo } from "@/types";
+import { AddPostSchema } from "@/types/schema/public";
 
 export default function Home() {
+  const [editPostId, setEditPostId] = useState(0);
+  const [newTitle, setNewTitle] = useState("");
+
   const trpcUtils = trpc.useUtils();
 
-  const { data: loginData, mutateAsync: handleLogin } =
-    trpc.auth.login.useMutation({
-      onSuccess: ({}) => {
-        console.log(loginData);
-        trpcUtils.profile.getProfile.invalidate(); // Use this to refech the profile data
-      },
-      onError: (error) => {
-        console.log(error);
-      },
-    });
+  const { data: postData, isLoading, error } = trpc.public.getPosts.useQuery();
 
-  const { data: createAccountData, mutateAsync: handleCreateAccount } =
-    trpc.auth.createAccount.useMutation({
-      onSuccess: ({}) => {
-        console.log(createAccountData);
+  const { mutateAsync: addPost, isLoading: isLoadingAddPost } =
+    trpc.public.addPost.useMutation({
+      onSuccess: () => {
+        trpcUtils.public.getPosts.invalidate();
       },
-      onError: (error) => {
-        console.log(error);
+      onError: (err) => {
+        alert("Failed to add Post: " + err.message);
       },
     });
 
-  const { data: userProfile, isLoading } = trpc.profile.getProfile.useQuery();
+  const { mutateAsync: updatePost, isLoading: isLoadingUpdatePost } =
+    trpc.public.updatePost.useMutation({
+      onSuccess: () => {
+        trpcUtils.public.getPosts.invalidate();
+      },
+      onError: (err) => {
+        alert("Failed to toggle Post: " + err.message);
+      },
+    });
 
-  // const { data: userDisplayName } =
-  //   trpc.profile.getProfileByDisplayName.useQuery({
-  //     username: "username",
-  //   });
+  const handleAddPost = () => {
+    if (!newTitle.trim()) return;
+    addPost({ id: Date.now(), title: newTitle });
+    setNewTitle("");
+  };
 
-  const { data: todoData, isLoading: isTodoLoading } =
-    trpc.public.getTodos.useQuery();
+  const handleUpdatePost = () => {
+    updatePost({ id: editPostId, title: newTitle });
+    setNewTitle("");
+  };
 
-  console.log("isLoading", isLoading);
-  console.log("userProfile", userProfile);
-
-  // console.log("userDisplayName", userDisplayName);
+  if (isLoading) return <p className="text-center">Loading...</p>;
+  if (error)
+    return <p className="text-red-600 text-center">Error loading Posts</p>;
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="p-8 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Todos</h1>
+
+      <div className="flex gap-2 mb-4">
+        <input
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          className="border px-2 py-1 flex-grow text-black/80"
+          placeholder="New Post..."
         />
         <button
-          onClick={() =>
-            handleLogin({ email: "test@blog.com", password: "blogtest" })
-          }
-          className="bg-blue-900 text-white"
+          onClick={editPostId !== 0 ? handleUpdatePost : handleAddPost}
+          className="bg-blue-600 text-white px-4 py-1 rounded"
+          disabled={isLoadingAddPost}
         >
-          Login
+          {isLoadingAddPost || isLoadingUpdatePost
+            ? "Processing..."
+            : editPostId !== 0
+            ? "Update"
+            : "Add"}
         </button>
-        <button
-          onClick={() =>
-            handleCreateAccount({
-              email: "test@blog.com",
-              password: "blogtest",
-              contact: { phone: "1234567890", country: "Nigeria" },
-              role: "USER",
-              account: "CUSTOMER",
-            })
-          }
-          className="bg-green-900 text-white"
-        >
-          Create Account
-        </button>
+      </div>
 
-        <div className="flex gap-4 items-start flex-col">
-          {isTodoLoading ? (
-            <p>Loading...</p>
-          ) : (
-            <React.Fragment>
-              {todoData?.map((todo: Todo) => (
-                <div key={todo.id} className="flex gap-4 items-start">
-                  <p>{todo.title}</p>
-                  <p className="bg-red-700 text-white">
-                    {todo.completed ? "Completed" : "Not Completed"}
-                  </p>
-                </div>
-              ))}
-            </React.Fragment>
-          )}
-        </div>
-      </main>
+      <ul className="space-y-2">
+        {postData?.slice(0, 15).map((todo: AddPostSchema) => (
+          <li
+            key={todo.id}
+            className="flex justify-between items-center border p-2 rounded"
+          >
+            <span>{todo.title}</span>
+            <button
+              onClick={() => {
+                setEditPostId(todo.id);
+                setNewTitle(todo.title);
+              }}
+              disabled={isLoadingUpdatePost}
+              className={`px-3 py-1 rounded bg-green-600 text-white`}
+            >
+              Edit
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
