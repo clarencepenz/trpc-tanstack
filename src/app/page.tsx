@@ -3,6 +3,8 @@
 import React from "react";
 import { trpc } from "@/utils/trpc.utils";
 
+const POST_LIMIT = 15;
+
 export default function Home() {
   const { data: postData, isLoading, error } = trpc.public.getPosts.useQuery();
 
@@ -10,7 +12,7 @@ export default function Home() {
   if (error)
     return <p className="text-red-600 text-center">Error loading Posts</p>;
 
-  const posts = postData?.slice(0, 15);
+  const posts = postData?.slice(0, POST_LIMIT);
 
   return (
     <div className="p-8 max-w-xl mx-auto">
