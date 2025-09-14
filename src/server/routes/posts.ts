@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/config/api.config";
 import { publicProcedure, router } from "@/server/trpc";
-import { PostSchema, UpdatePostSchema } from "@/types/schema/public";
+import { PostSchema, UpdatePostSchema } from "@/types/schema/post";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
