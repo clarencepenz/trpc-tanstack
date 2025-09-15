@@ -76,11 +76,11 @@ export const postRouter = router({
   updatePost: publicProcedure
     .input(UpdatePostSchema)
     .mutation(async ({ input }) => {
-      const { id, title } = input;
+      const { id, title, body } = input;
 
       const { data, error } = await supabase
         .from("posts")
-        .update({ title })
+        .update({ title, body })
         .eq("id", id);
 
       if (error) {
