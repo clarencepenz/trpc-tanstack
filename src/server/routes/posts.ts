@@ -15,7 +15,7 @@ export const postRouter = router({
       console.error("Error fetching posts:", error);
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Failed to fetch ingredients",
+        message: "Failed to fetch posts",
         cause: error,
       });
     }
@@ -40,7 +40,7 @@ export const postRouter = router({
     if (error) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: "Post not found",
+        message: "Unable to insert Post",
         cause: error,
       });
     }
