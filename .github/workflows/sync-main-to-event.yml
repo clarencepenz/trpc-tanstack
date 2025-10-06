@@ -1,9 +1,9 @@
-name: Sync main to neutron branch
+name: Sync mail to ga branch
 
 on:
   push:
     branches:
-      - main  # Trigger only when main is updated (e.g., PR merged)
+      - mail  # Trigger only when mail is updated (e.g., PR merged)
 
 permissions:
   contents: write  # Needed to push changes
@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout main branch
+      - name: Checkout mail branch
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: mail
           fetch-depth: 0  # Fetch full history for merging
 
       - name: Set up Git user
@@ -25,19 +25,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch neutron branch
-        run: git fetch origin neutron:neutron
+      - name: Fetch ga branch
+        run: git fetch origin ga:ga
 
-      - name: Merge main into neutron (prefer main changes)
+      - name: Merge mail into ga (prefer mail changes)
         run: |
-          git checkout neutron
-          # Merge main into neutron, automatically preferring main's version
-          git merge main --no-edit -X theirs || true
+          git checkout ga
+          # Merge mail into ga, automatically preferring mail's version
+          git merge mail --no-edit -X theirs || true
 
-          # If merge produces conflicts, auto-resolve them by preferring main
+          # If merge produces conflicts, auto-resolve them by preferring mail
           git checkout --theirs . || true
           git add .
-          git commit -m "Auto-sync: merged main into neutron (preferred main changes)" || echo "No changes to commit"
+          git commit -m "Auto-sync: merged mail into ga (preferred mail changes)" || echo "No changes to commit"
 
-      - name: Push updated neutron branch
-        run: git push origin neutron
+      - name: Push updated ga branch
+        run: git push origin ga
