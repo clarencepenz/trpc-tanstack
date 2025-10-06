@@ -49,7 +49,7 @@ export default function Home() {
 
   return (
     <div className="p-8 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Todos</h1>
+      <h1 className="text-2xl font-bold mb-4">Todos x</h1>
 
       <div className="flex gap-2 mb-4">
         <input
