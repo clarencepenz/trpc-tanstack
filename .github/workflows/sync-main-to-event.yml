@@ -1,0 +1,43 @@
+name: Sync main to neutron branch
+
+on:
+  push:
+    branches:
+      - main  # Trigger only when main is updated (e.g., PR merged)
+
+permissions:
+  contents: write  # Needed to push changes
+  pull-requests: read
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0  # Fetch full history for merging
+
+      - name: Set up Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch neutron branch
+        run: git fetch origin neutron:neutron
+
+      - name: Merge main into neutron (prefer main changes)
+        run: |
+          git checkout neutron
+          # Merge main into neutron, automatically preferring main's version
+          git merge main --no-edit -X theirs || true
+
+          # If merge produces conflicts, auto-resolve them by preferring main
+          git checkout --theirs . || true
+          git add .
+          git commit -m "Auto-sync: merged main into neutron (preferred main changes)" || echo "No changes to commit"
+
+      - name: Push updated neutron branch
+        run: git push origin neutron
